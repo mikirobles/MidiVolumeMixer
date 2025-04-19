@@ -62,9 +62,9 @@
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
-                                                <Button Content="0%" Width="35" Click="SetVolume_Click" Tag="{Binding Path=ProcessName, StringFormat={}{0}|0}"/>
-                                                <Button Content="50%" Width="35" Margin="5,0" Click="SetVolume_Click" Tag="{Binding Path=ProcessName, StringFormat={}{0}|50}"/>
-                                                <Button Content="100%" Width="35" Click="SetVolume_Click" Tag="{Binding Path=ProcessName, StringFormat={}{0}|100}"/>
+                                                <Button Content="0%" Width="35" Click="SetVolume_Click" Tag="0"/>
+                                                <Button Content="50%" Width="35" Margin="5,0" Click="SetVolume_Click" Tag="50"/>
+                                                <Button Content="100%" Width="35" Click="SetVolume_Click" Tag="100"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>

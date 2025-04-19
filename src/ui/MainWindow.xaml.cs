@@ -35,6 +35,9 @@ namespace MidiVolumeMixer.ui
             _volumeController = new VolumeController();
             _midiMapper = new MidiMapper(_volumeController);
             
+            // Subscribe to volume changed events
+            _midiMapper.VolumeChanged += OnVolumeChanged;
+            
             // Initialize collections
             _audioSessions = new ObservableCollection<AudioSession>();
             _mappings = new ObservableCollection<MappingViewModel>();
@@ -218,23 +221,29 @@ namespace MidiVolumeMixer.ui
 
         private void SetVolume_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button button && button.Tag is string tag)
+            if (sender is Button button)
             {
                 try
                 {
-                    var parts = tag.Split('|');
-                    if (parts.Length == 2 && int.TryParse(parts[1], out int volumePercent))
+                    // Get the button's tag directly from the DataContext and Tag
+                    var tag = button.Tag as string;
+                    var audioSession = button.DataContext as AudioSession;
+                    
+                    if (tag != null && audioSession != null)
                     {
-                        string processName = parts[0];
-                        Console.WriteLine($"Setting volume for {processName} to {volumePercent}%");
-                        _volumeController.SetVolumeForApplication(processName, volumePercent);
-                        
-                        // Refresh the list to show updated volumes
-                        RefreshApplicationsList();
+                        string processName = audioSession.ProcessName;
+                        if (int.TryParse(tag, out int volumePercent))
+                        {
+                            Console.WriteLine($"Setting volume for {processName} to {volumePercent}%");
+                            _volumeController.SetVolumeForApplication(processName, volumePercent);
+                            
+                            // Refresh the list to show updated volumes
+                            RefreshApplicationsList();
+                        }
                     }
                     else
                     {
-                        Console.WriteLine($"Invalid tag format: {tag}");
+                        Console.WriteLine($"Invalid tag or missing DataContext: Tag={tag}, AudioSession={audioSession != null}");
                     }
                 }
                 catch (Exception ex)
@@ -404,6 +413,15 @@ namespace MidiVolumeMixer.ui
             bool startMinimized = StartMinimizedCheckBox.IsChecked ?? false;
             
             MessageBox.Show("Settings saved successfully", "Save Settings", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void OnVolumeChanged(object sender, EventArgs e)
+        {
+            // Update the application list when volume changes occur via MIDI
+            Dispatcher.Invoke(() =>
+            {
+                RefreshApplicationsList();
+            });
         }
     }
 

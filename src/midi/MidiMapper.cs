@@ -23,6 +23,9 @@ namespace MidiVolumeMixer.Midi
             set => _selectedMidiDeviceIndex = value;
         }
 
+        // Event to notify when a MIDI-based volume change occurs
+        public event EventHandler VolumeChanged;
+
         public MidiMapper(VolumeController volumeController)
         {
             _volumeController = volumeController;
@@ -95,11 +98,20 @@ namespace MidiVolumeMixer.Midi
                     ApplyVolumeSetting(setting);
                 }
                 Console.WriteLine($"Applied volume settings for note {midiNote} (Mapping ID: {mappingId})");
+                
+                // Notify listeners that volume changes have occurred
+                OnVolumeChanged();
             }
             else
             {
                 Console.WriteLine($"No mapping found for note {midiNote}");
             }
+        }
+
+        // Method to trigger the VolumeChanged event
+        protected virtual void OnVolumeChanged()
+        {
+            VolumeChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void ApplyVolumeSetting(VolumeSetting setting)
