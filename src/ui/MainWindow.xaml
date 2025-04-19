@@ -98,8 +98,8 @@
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal">
-                                                <Button Content="Edit" Width="40" Click="EditMapping_Click"/>
-                                                <Button Content="Delete" Width="40" Margin="5,0,0,0" Click="DeleteMapping_Click"/>
+                                                <Button Content="Edit" Width="40" Click="EditMapping_Click" Tag="{Binding MappingId}"/>
+                                                <Button Content="Delete" Width="40" Margin="5,0,0,0" Click="DeleteMapping_Click" Tag="{Binding MappingId}"/>
                                             </StackPanel>
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>

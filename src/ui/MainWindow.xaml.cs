@@ -43,8 +43,9 @@ namespace MidiVolumeMixer.ui
             ApplicationsListView.ItemsSource = _audioSessions;
             MappingsListView.ItemsSource = _mappings;
             
-            // Register for window load
+            // Register for window load and closing events
             this.Loaded += MainWindow_Loaded;
+            this.Closing += MainWindow_Closing;
         }
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -57,6 +58,21 @@ namespace MidiVolumeMixer.ui
             
             // Convert mappings to view models
             UpdateMappingsListFromMidiMapper();
+        }
+
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            try
+            {
+                // Auto-save mappings when the application is closing
+                _midiMapper.SaveMappings();
+                Console.WriteLine("Mappings auto-saved on application exit");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error auto-saving mappings: {ex.Message}");
+                // Don't show message box on closing as it would be annoying
+            }
         }
 
         private void LoadMidiDevices()
@@ -73,8 +89,19 @@ namespace MidiVolumeMixer.ui
                 
                 if (inputDevices.Count > 0)
                 {
-                    MidiDevicesComboBox.SelectedIndex = 0;
-                    MidiStatusTextBlock.Text = $"Found {inputDevices.Count} MIDI devices";
+                    // Use the saved device index if it's valid
+                    int savedIndex = _midiMapper.SelectedMidiDeviceIndex;
+                    if (savedIndex >= 0 && savedIndex < inputDevices.Count)
+                    {
+                        MidiDevicesComboBox.SelectedIndex = savedIndex;
+                        MidiStatusTextBlock.Text = $"Using saved MIDI device: {inputDevices[savedIndex].Name}";
+                    }
+                    else
+                    {
+                        // Fall back to the first device if saved index is invalid
+                        MidiDevicesComboBox.SelectedIndex = 0;
+                        MidiStatusTextBlock.Text = $"Found {inputDevices.Count} MIDI devices";
+                    }
                 }
                 else
                 {
@@ -133,6 +160,9 @@ namespace MidiVolumeMixer.ui
             {
                 try
                 {
+                    // Store the selected device index for persistence
+                    _midiMapper.SelectedMidiDeviceIndex = MidiDevicesComboBox.SelectedIndex;
+                    
                     // Dispose of previous listener if one exists
                     _midiListener?.Dispose();
                     
@@ -322,14 +352,48 @@ namespace MidiVolumeMixer.ui
 
         private void SaveMappings_Click(object sender, RoutedEventArgs e)
         {
-            // In a real implementation, you would save the mappings to a file
-            MessageBox.Show("Mappings saved successfully", "Save Mappings", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                bool success = _midiMapper.SaveMappings();
+                
+                if (success)
+                {
+                    MessageBox.Show("Mappings saved successfully.", "Save Mappings", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to save mappings. Please check the application logs for more details.", 
+                                   "Save Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error saving mappings: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void LoadMappings_Click(object sender, RoutedEventArgs e)
         {
-            // In a real implementation, you would load the mappings from a file
-            MessageBox.Show("Mappings loaded successfully", "Load Mappings", MessageBoxButton.OK, MessageBoxImage.Information);
+            try
+            {
+                bool success = _midiMapper.LoadMappings();
+                
+                if (success)
+                {
+                    // Update the UI with the loaded mappings
+                    UpdateMappingsListFromMidiMapper();
+                    MessageBox.Show("Mappings loaded successfully.", "Load Mappings", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("Failed to load mappings. No saved mappings were found or the file was invalid.", 
+                                   "Load Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading mappings: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void SaveSettings_Click(object sender, RoutedEventArgs e)

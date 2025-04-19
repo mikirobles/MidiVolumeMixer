@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using Melanchall.DryWetMidi.Common;
 using Melanchall.DryWetMidi.Core;
 using MidiVolumeMixer.Audio;
@@ -12,6 +14,14 @@ namespace MidiVolumeMixer.Midi
         private Dictionary<Guid, MidiMapping> _mappingsById;
         private Dictionary<int, Guid> _noteToMappingIdLookup;
         private readonly VolumeController _volumeController;
+        private const string DEFAULT_SAVE_FILE = "midi_mappings.json";
+        private int _selectedMidiDeviceIndex = 0;
+        
+        public int SelectedMidiDeviceIndex 
+        {
+            get => _selectedMidiDeviceIndex;
+            set => _selectedMidiDeviceIndex = value;
+        }
 
         public MidiMapper(VolumeController volumeController)
         {
@@ -19,6 +29,16 @@ namespace MidiVolumeMixer.Midi
             _mappingsById = new Dictionary<Guid, MidiMapping>();
             _noteToMappingIdLookup = new Dictionary<int, Guid>();
             
+            // Try to load existing mappings first
+            if (!LoadMappings())
+            {
+                // If no mappings could be loaded, initialize default mappings
+                InitializeDefaultMappings();
+            }
+        }
+        
+        private void InitializeDefaultMappings()
+        {
             // Initialize default mappings
             var mapping1 = new MidiMapping
             {
@@ -175,6 +195,113 @@ namespace MidiVolumeMixer.Midi
             }
             return null;
         }
+        
+        public bool SaveMappings(string filePath = null)
+        {
+            filePath = filePath ?? GetDefaultSaveFilePath();
+            
+            try
+            {
+                var mappingsToSave = new MappingFile
+                {
+                    Mappings = _mappingsById.Values.ToList(),
+                    SaveTimestamp = DateTime.Now,
+                    SelectedMidiDeviceIndex = _selectedMidiDeviceIndex
+                };
+                
+                var options = new JsonSerializerOptions { WriteIndented = true };
+                string json = JsonSerializer.Serialize(mappingsToSave, options);
+                
+                File.WriteAllText(filePath, json);
+                Console.WriteLine($"Saved {_mappingsById.Count} mappings to {filePath} with MIDI device index {_selectedMidiDeviceIndex}");
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving mappings: {ex.Message}");
+                return false;
+            }
+        }
+        
+        public bool LoadMappings(string filePath = null)
+        {
+            filePath = filePath ?? GetDefaultSaveFilePath();
+            
+            try
+            {
+                if (!File.Exists(filePath))
+                {
+                    Console.WriteLine($"Mappings file not found: {filePath}");
+                    return false;
+                }
+                
+                string json = File.ReadAllText(filePath);
+                var mappingsFile = JsonSerializer.Deserialize<MappingFile>(json);
+                
+                if (mappingsFile == null)
+                {
+                    Console.WriteLine("Invalid mappings file format");
+                    return false;
+                }
+                
+                // Load MIDI device index
+                _selectedMidiDeviceIndex = mappingsFile.SelectedMidiDeviceIndex;
+                
+                // If no mappings are found, we still consider this a success for device selection
+                if (mappingsFile.Mappings == null || mappingsFile.Mappings.Count == 0)
+                {
+                    Console.WriteLine("No mappings found in the file, but device index was loaded");
+                    return true;
+                }
+                
+                // Clear existing mappings
+                _mappingsById.Clear();
+                _noteToMappingIdLookup.Clear();
+                
+                // Load mappings from file
+                foreach (var mapping in mappingsFile.Mappings)
+                {
+                    if (mapping.Id == Guid.Empty)
+                    {
+                        mapping.Id = Guid.NewGuid();
+                    }
+                    
+                    _mappingsById[mapping.Id] = mapping;
+                    _noteToMappingIdLookup[mapping.MidiNote] = mapping.Id;
+                }
+                
+                Console.WriteLine($"Loaded {_mappingsById.Count} mappings from {filePath} with MIDI device index {_selectedMidiDeviceIndex}");
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading mappings: {ex.Message}");
+                return false;
+            }
+        }
+        
+        private string GetDefaultSaveFilePath()
+        {
+            string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string appFolder = Path.Combine(appDataFolder, "MidiVolumeMixer");
+            
+            // Create the directory if it doesn't exist
+            if (!Directory.Exists(appFolder))
+            {
+                Directory.CreateDirectory(appFolder);
+            }
+            
+            return Path.Combine(appFolder, DEFAULT_SAVE_FILE);
+        }
+    }
+
+    public class MappingFile
+    {
+        public List<MidiMapping> Mappings { get; set; }
+        public DateTime SaveTimestamp { get; set; }
+        public int SelectedMidiDeviceIndex { get; set; } = 0;
     }
 
     public class MidiMapping
@@ -186,13 +313,16 @@ namespace MidiVolumeMixer.Midi
 
     public class VolumeSetting
     {
-        public string ApplicationName { get; }
-        public int VolumeLevel { get; }
-
+        // To make the class serializable for JsonSerializer
+        public VolumeSetting() { }
+        
         public VolumeSetting(string applicationName, int volumeLevel)
         {
             ApplicationName = applicationName;
             VolumeLevel = volumeLevel;
         }
+
+        public string ApplicationName { get; set; }
+        public int VolumeLevel { get; set; }
     }
 }
