@@ -1,58 +1,61 @@
 name: Build and Release
 
+permissions:
+  contents: write # Required to create releases and upload assets
+
 on:
   push:
     tags:
-      - 'v*' # Trigger on tags starting with 'v' (e.g., v1.0.0)
+      - "v*" # Trigger on tags starting with 'v' (e.g., v1.0.0)
 
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '6.0.x'
-        
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Build project
-      run: dotnet build --configuration Release --no-restore
-      
-    - name: Publish self-contained app
-      run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishReadyToRun=true
-      
-    - name: Create zip archive
-      run: |
-        $publishPath = "bin\Release\net6.0-windows\win-x64\publish"
-        $zipFile = "MIDIVolumeMixer-${{ github.ref_name }}.zip"
-        Compress-Archive -Path "$publishPath\*" -DestinationPath $zipFile
-      shell: pwsh
-      
-    - name: Create Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          MIDIVolumeMixer-${{ github.ref_name }}.zip
-          bin\Release\net6.0-windows\win-x64\publish\midi-volume-mixer.exe
-        name: MIDI Volume Mixer ${{ github.ref_name }}
-        draft: false
-        prerelease: false
-        generate_release_notes: true
-        body: |
-          ## MIDI Volume Mixer ${{ github.ref_name }}
-          
-          ### Installation
-          - **Option 1:** Download and extract the zip file for a complete installation
-          - **Option 2:** Download the standalone .exe file (may require .NET Runtime)
-          
-          ### System Requirements
-          - Windows 10 or later
-          - .NET 6.0 Runtime (included in the zip package)
-          - MIDI controller device
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "6.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build project
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Publish self-contained app
+        run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishReadyToRun=true
+
+      - name: Create zip archive
+        run: |
+          $publishPath = "bin\Release\net6.0-windows\win-x64\publish"
+          $zipFile = "MIDIVolumeMixer-${{ github.ref_name }}.zip"
+          Compress-Archive -Path "$publishPath\*" -DestinationPath $zipFile
+        shell: pwsh
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            MIDIVolumeMixer-${{ github.ref_name }}.zip
+            bin\Release\net6.0-windows\win-x64\publish\midi-volume-mixer.exe
+          name: MIDI Volume Mixer ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## MIDI Volume Mixer ${{ github.ref_name }}
+
+            ### Installation
+            - **Option 1:** Download and extract the zip file for a complete installation
+            - **Option 2:** Download the standalone .exe file (may require .NET Runtime)
+
+            ### System Requirements
+            - Windows 10 or later
+            - .NET 6.0 Runtime (included in the zip package)
+            - MIDI controller device
