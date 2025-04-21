@@ -20,13 +20,13 @@ namespace MidiVolumeMixer.ui.Dialogs
         private int _currentMidiNote;
         private Guid? _currentMappingId;
         private bool _isEditMode;
-        
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         public MappingWindow(Window owner, VolumeController volumeController, MidiMapper midiMapper)
         {
             InitializeComponent();
-            
+
             Owner = owner;
             _volumeController = volumeController;
             _midiMapper = midiMapper;
@@ -38,17 +38,17 @@ namespace MidiVolumeMixer.ui.Dialogs
             // Set data contexts
             MappedAppsListBox.ItemsSource = _mappedApps;
             ApplicationsListView.ItemsSource = _applications;
-            
+
             // Load applications
             LoadApplications();
         }
 
-        public MappingWindow(Window owner, VolumeController volumeController, MidiMapper midiMapper, int midiNote) 
+        public MappingWindow(Window owner, VolumeController volumeController, MidiMapper midiMapper, int midiNote)
             : this(owner, volumeController, midiMapper)
         {
             _currentMidiNote = midiNote;
             MidiNoteTextBox.Text = midiNote.ToString();
-            
+
             // Check if there's an existing mapping for this note
             var mapping = _midiMapper.GetMappingForNote(midiNote);
             if (mapping != null)
@@ -69,7 +69,7 @@ namespace MidiVolumeMixer.ui.Dialogs
                 _currentMidiNote = mapping.MidiNote;
                 MidiNoteTextBox.Text = mapping.MidiNote.ToString();
                 _isEditMode = true;
-                
+
                 LoadExistingMapping(mapping);
             }
             else
@@ -82,7 +82,7 @@ namespace MidiVolumeMixer.ui.Dialogs
         private void LoadApplications()
         {
             _applications.Clear();
-            
+
             foreach (var session in _volumeController.GetAllAudioSessions())
             {
                 _applications.Add(new AppVolumeViewModel
@@ -106,7 +106,7 @@ namespace MidiVolumeMixer.ui.Dialogs
         private void LoadExistingMapping(MidiMapping mapping)
         {
             _mappedApps.Clear();
-            
+
             foreach (var setting in mapping.Settings)
             {
                 _mappedApps.Add(new MappedAppViewModel
@@ -123,7 +123,7 @@ namespace MidiVolumeMixer.ui.Dialogs
             if (_isLearningMidi)
             {
                 _currentMidiNote = note;
-                
+
                 // Update the UI on the UI thread
                 Dispatcher.Invoke(() =>
                 {
@@ -152,12 +152,12 @@ namespace MidiVolumeMixer.ui.Dialogs
         private void AddSelectedAppsButton_Click(object sender, RoutedEventArgs e)
         {
             var selectedItem = ApplicationsListView.SelectedItem as AppVolumeViewModel;
-            
+
             if (selectedItem != null)
             {
                 // Check if this app is already mapped
                 bool isDuplicate = _mappedApps.Any(app => app.ApplicationName == selectedItem.ProcessName);
-                
+
                 if (!isDuplicate)
                 {
                     _mappedApps.Add(new MappedAppViewModel
@@ -194,18 +194,18 @@ namespace MidiVolumeMixer.ui.Dialogs
                 MessageBox.Show("Please select a MIDI note first.", "No MIDI Note", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            
+
             if (_mappedApps.Count == 0)
             {
                 MessageBox.Show("Please add at least one application mapping.", "No Mappings", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-            
+
             // Convert to volume settings
             var settings = _mappedApps
                 .Select(app => new VolumeSetting(app.ApplicationName, app.VolumeLevel))
                 .ToArray();
-            
+
             // Save or update the mapping
             if (_isEditMode && _currentMappingId.HasValue)
             {
@@ -219,7 +219,7 @@ namespace MidiVolumeMixer.ui.Dialogs
                 _midiMapper.AddMapping(_currentMidiNote, settings);
                 Console.WriteLine($"Added new mapping for MIDI note {_currentMidiNote}");
             }
-            
+
             DialogResult = true;
             Close();
         }
@@ -236,7 +236,7 @@ namespace MidiVolumeMixer.ui.Dialogs
         public string ProcessName { get; set; }
         public int CurrentVolume { get; set; }
         public bool IsAllApplications { get; set; }
-        
+
         private int _targetVolume;
         public int TargetVolume
         {
@@ -250,9 +250,9 @@ namespace MidiVolumeMixer.ui.Dialogs
                 }
             }
         }
-        
+
         public event PropertyChangedEventHandler PropertyChanged;
-        
+
         protected virtual void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

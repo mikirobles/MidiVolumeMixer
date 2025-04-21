@@ -1,5 +1,9 @@
 # MIDI Volume Mixer
 
+> Warning: First attempt at vibe-coding an app as an experiment. I mainly wanted the functionality for my personal use and copilot agent was 100% the quickest way to get it done.
+
+![docs/screenshot.png](docs/screenshot.png)
+
 A Windows application that allows you to control application volumes using a MIDI controller.
 
 ## Features

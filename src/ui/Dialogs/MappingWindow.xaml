@@ -1,7 +1,9 @@
 <Window x:Class="MidiVolumeMixer.ui.Dialogs.MappingWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MIDI Mapping" Height="400" Width="500"
+        Title="MIDI Mapping"
+        Height="400"
+        Width="500"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
     <Grid Margin="10">
@@ -12,67 +14,101 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        
+
         <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Configure MIDI Mapping" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
-        
+        <TextBlock Grid.Row="0"
+                Text="Configure MIDI Mapping"
+                FontSize="18"
+                FontWeight="Bold"
+                Margin="0,0,0,10"/>
+
         <!-- MIDI Note Selection -->
-        <Grid Grid.Row="1" Margin="0,0,0,10">
+        <Grid Grid.Row="1"
+                Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            
-            <TextBlock Grid.Column="0" Text="MIDI Note:" VerticalAlignment="Center"/>
-            <TextBox Grid.Column="1" x:Name="MidiNoteTextBox" Margin="10,0" IsReadOnly="True"/>
-            <Button Grid.Column="2" x:Name="LearnButton" Content="Learn" Width="80" Click="LearnButton_Click"/>
+
+            <TextBlock Grid.Column="0"
+                    Text="MIDI Note:"
+                    VerticalAlignment="Center"/>
+            <TextBox Grid.Column="1"
+                    x:Name="MidiNoteTextBox"
+                    Margin="10,0"
+                    IsReadOnly="True"/>
+            <Button Grid.Column="2"
+                    x:Name="LearnButton"
+                    Content="Learn"
+                    Width="80"
+                    Click="LearnButton_Click"/>
         </Grid>
-        
+
         <!-- Application Volume Settings -->
-        <GroupBox Grid.Row="2" Header="Volume Settings">
+        <GroupBox Grid.Row="2"
+                Header="Volume Settings">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                
-                <TextBlock Grid.Row="0" Text="Select applications and set their volumes:" Margin="0,0,0,5"/>
-                
-                <ListView Grid.Row="1" x:Name="ApplicationsListView" Margin="0,5">
+
+                <TextBlock Grid.Row="0"
+                        Text="Select applications and set their volumes:"
+                        Margin="0,0,0,5"/>
+
+                <ListView Grid.Row="1"
+                        x:Name="ApplicationsListView"
+                        Margin="0,5">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Application" Width="200" DisplayMemberBinding="{Binding ProcessName}"/>
-                            <GridViewColumn Header="Volume" Width="150">
+                            <GridViewColumn Header="Application"
+                                    Width="200"
+                                    DisplayMemberBinding="{Binding ProcessName}"/>
+                            <GridViewColumn Header="Volume"
+                                    Width="150">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Slider Value="{Binding TargetVolume}" Minimum="0" Maximum="100" Width="140" 
+                                        <Slider Value="{Binding TargetVolume}"
+                                                Minimum="0"
+                                                Maximum="100"
+                                                Width="140"
                                                 ToolTip="{Binding TargetVolume, StringFormat={}{0}%}"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
-                            <GridViewColumn Header="%" Width="50">
+                            <GridViewColumn Header="%"
+                                    Width="50">
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding TargetVolume, StringFormat={}{0}%}" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding TargetVolume, StringFormat={}{0}%}"
+                                                HorizontalAlignment="Center"/>
                                     </DataTemplate>
                                 </GridViewColumn.CellTemplate>
                             </GridViewColumn>
                         </GridView>
                     </ListView.View>
                 </ListView>
-                
-                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,5,0,0">
-                    <CheckBox x:Name="IncludeCheckBox" Content="Include in mapping" IsChecked="True" Margin="0,0,5,0" VerticalAlignment="Center"/>
-                    <Button x:Name="AddSelectedAppsButton" Content="Add Selected" Click="AddSelectedAppsButton_Click"/>
+
+                <StackPanel Grid.Row="2"
+                        Orientation="Horizontal"
+                        Margin="0,5,0,0">
+                    <Button x:Name="AddSelectedAppsButton"
+                            Content="Add Selected"
+                            Click="AddSelectedAppsButton_Click"/>
                 </StackPanel>
             </Grid>
         </GroupBox>
-        
+
         <!-- Current Mappings -->
-        <TextBlock Grid.Row="3" Text="Mapped Applications:" Margin="0,10,0,5"/>
-        <ListBox Grid.Row="3" x:Name="MappedAppsListBox" Height="80">
+        <TextBlock Grid.Row="3"
+                Text="Mapped Applications:"
+                Margin="0,10,0,5"/>
+        <ListBox Grid.Row="3"
+                x:Name="MappedAppsListBox"
+                Height="80">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
@@ -80,17 +116,32 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding DisplayText}"/>
-                        <Button Grid.Column="1" Content="Remove" Click="RemoveMappedApp_Click" Tag="{Binding}" Width="60"/>
+                        <TextBlock Grid.Column="0"
+                                Text="{Binding DisplayText}"/>
+                        <Button Grid.Column="1"
+                                Content="Remove"
+                                Click="RemoveMappedApp_Click"
+                                Tag="{Binding}"
+                                Width="60"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        
+
         <!-- Buttons -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button x:Name="SaveButton" Content="Save" Width="80" Click="SaveButton_Click" Margin="0,0,5,0"/>
-            <Button x:Name="CancelButton" Content="Cancel" Width="80" Click="CancelButton_Click"/>
+        <StackPanel Grid.Row="4"
+                Orientation="Horizontal"
+                HorizontalAlignment="Right"
+                Margin="0,10,0,0">
+            <Button x:Name="SaveButton"
+                    Content="Save"
+                    Width="80"
+                    Click="SaveButton_Click"
+                    Margin="0,0,5,0"/>
+            <Button x:Name="CancelButton"
+                    Content="Cancel"
+                    Width="80"
+                    Click="CancelButton_Click"/>
         </StackPanel>
     </Grid>
 </Window>

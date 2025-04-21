@@ -13,13 +13,13 @@ namespace MidiVolumeMixer.Utils
         {
             string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string appFolder = Path.Combine(appDataFolder, "MidiVolumeMixer");
-            
+
             // Create the directory if it doesn't exist
             if (!Directory.Exists(appFolder))
             {
                 Directory.CreateDirectory(appFolder);
             }
-            
+
             LogFilePath = Path.Combine(appFolder, LOG_FILE);
 
             // Clear the log file at startup
@@ -53,12 +53,12 @@ namespace MidiVolumeMixer.Utils
             sb.AppendLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] EXCEPTION in {context}:");
             sb.AppendLine($"Message: {ex.Message}");
             sb.AppendLine($"StackTrace: {ex.StackTrace}");
-            
+
             if (ex.InnerException != null)
             {
                 sb.AppendLine($"InnerException: {ex.InnerException.Message}");
             }
-            
+
             try
             {
                 File.AppendAllText(LogFilePath, sb.ToString());

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.ComponentModel;
 using NAudio.CoreAudioApi;
 
 namespace MidiVolumeMixer.Audio
@@ -21,7 +22,7 @@ namespace MidiVolumeMixer.Audio
         {
             float volume = volumePercent / 100.0f;
             _applicationVolumes[processName] = volume;
-            
+
             try
             {
                 // Get the default audio endpoint
@@ -32,12 +33,12 @@ namespace MidiVolumeMixer.Audio
                     for (int i = 0; i < sessionManager.Sessions.Count; i++)
                     {
                         var session = sessionManager.Sessions[i];
-                        
+
                         try
                         {
                             // Get process ID for this session
                             string sessionProcessName = GetProcessNameFromId((int)session.GetProcessID);
-                            
+
                             if (string.Equals(sessionProcessName, processName, StringComparison.OrdinalIgnoreCase))
                             {
                                 // Set the volume for the matching process
@@ -65,7 +66,7 @@ namespace MidiVolumeMixer.Audio
         public void SetVolumeForAllApplications(int volumePercent)
         {
             float volume = volumePercent / 100.0f;
-            
+
             try
             {
                 // Get the default audio endpoint
@@ -76,7 +77,7 @@ namespace MidiVolumeMixer.Audio
                     for (int i = 0; i < sessionManager.Sessions.Count; i++)
                     {
                         var session = sessionManager.Sessions[i];
-                        
+
                         try
                         {
                             // Set the volume for all processes
@@ -92,7 +93,7 @@ namespace MidiVolumeMixer.Audio
                         }
                     }
                 }
-                
+
                 Console.WriteLine($"Set volume for all applications to {volumePercent}%");
             }
             catch (Exception ex)
@@ -113,12 +114,12 @@ namespace MidiVolumeMixer.Audio
                     for (int i = 0; i < sessionManager.Sessions.Count; i++)
                     {
                         var session = sessionManager.Sessions[i];
-                        
+
                         try
                         {
                             // Check if this session belongs to our target process
                             string sessionProcessName = GetProcessNameFromId((int)session.GetProcessID);
-                            
+
                             if (string.Equals(sessionProcessName, processName, StringComparison.OrdinalIgnoreCase))
                             {
                                 // Get the volume for the matching process
@@ -140,7 +141,7 @@ namespace MidiVolumeMixer.Audio
             {
                 Console.WriteLine($"Error getting volume: {ex.Message}");
             }
-            
+
             return 0.0f;
         }
 
@@ -162,7 +163,7 @@ namespace MidiVolumeMixer.Audio
         public List<AudioSession> GetAllAudioSessions()
         {
             var sessions = new List<AudioSession>();
-            
+
             try
             {
                 // Get the default audio endpoint
@@ -173,12 +174,12 @@ namespace MidiVolumeMixer.Audio
                     for (int i = 0; i < sessionManager.Sessions.Count; i++)
                     {
                         var session = sessionManager.Sessions[i];
-                        
+
                         try
                         {
                             string processName = GetProcessNameFromId((int)session.GetProcessID);
                             float volume = session.SimpleAudioVolume.Volume;
-                            
+
                             sessions.Add(new AudioSession
                             {
                                 ProcessId = (uint)session.GetProcessID,
@@ -201,15 +202,66 @@ namespace MidiVolumeMixer.Audio
             {
                 Console.WriteLine($"Error enumerating audio sessions: {ex.Message}");
             }
-            
+
             return sessions;
         }
     }
 
-    public class AudioSession
+    public class AudioSession : INotifyPropertyChanged
     {
-        public uint ProcessId { get; set; }
-        public string ProcessName { get; set; }
-        public float Volume { get; set; }
+        private uint _processId;
+        private string _processName;
+        private float _volume;
+
+        public uint ProcessId
+        {
+            get => _processId;
+            set
+            {
+                if (_processId != value)
+                {
+                    _processId = value;
+                    OnPropertyChanged(nameof(ProcessId));
+                }
+            }
+        }
+
+        public string ProcessName
+        {
+            get => _processName;
+            set
+            {
+                if (_processName != value)
+                {
+                    _processName = value;
+                    OnPropertyChanged(nameof(ProcessName));
+                }
+            }
+        }
+
+        public float Volume
+        {
+            get => _volume;
+            set
+            {
+                if (_volume != value)
+                {
+                    _volume = value;
+                    OnPropertyChanged(nameof(Volume));
+                }
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public override string ToString()
+        {
+            return ProcessName ?? "Unknown Application";
+        }
     }
 }

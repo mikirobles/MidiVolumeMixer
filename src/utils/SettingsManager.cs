@@ -26,41 +26,41 @@ namespace MidiVolumeMixer.Utils
         private SettingsData _data;
 
         // Application settings properties
-        public bool StartWithWindows 
-        { 
-            get => _data.StartWithWindows; 
-            set => _data.StartWithWindows = value; 
+        public bool StartWithWindows
+        {
+            get => _data.StartWithWindows;
+            set => _data.StartWithWindows = value;
         }
-        
-        public bool MinimizeToTray 
-        { 
-            get => _data.MinimizeToTray; 
-            set => _data.MinimizeToTray = value; 
+
+        public bool MinimizeToTray
+        {
+            get => _data.MinimizeToTray;
+            set => _data.MinimizeToTray = value;
         }
-        
-        public bool StartMinimized 
-        { 
-            get => _data.StartMinimized; 
-            set => _data.StartMinimized = value; 
+
+        public bool StartMinimized
+        {
+            get => _data.StartMinimized;
+            set => _data.StartMinimized = value;
         }
-        
-        public bool UseDarkMode 
-        { 
-            get => _data.UseDarkMode; 
-            set => _data.UseDarkMode = value; 
+
+        public bool UseDarkMode
+        {
+            get => _data.UseDarkMode;
+            set => _data.UseDarkMode = value;
         }
 
         static SettingsManager()
         {
             string appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             string appFolder = Path.Combine(appDataFolder, "MidiVolumeMixer");
-            
+
             // Create the directory if it doesn't exist
             if (!Directory.Exists(appFolder))
             {
                 Directory.CreateDirectory(appFolder);
             }
-            
+
             SettingsFilePath = Path.Combine(appFolder, DEFAULT_SETTINGS_FILE);
             Logger.Log($"Settings file path initialized: {SettingsFilePath}");
         }
@@ -100,11 +100,11 @@ namespace MidiVolumeMixer.Utils
                 {
                     WriteIndented = true
                 };
-                
+
                 // Serialize the settings data object, not the manager
                 string json = JsonSerializer.Serialize(_data, options);
                 File.WriteAllText(SettingsFilePath, json);
-                
+
                 Logger.Log($"Settings saved to: {SettingsFilePath}");
                 Logger.Log($"Settings content: {json}");
             }
@@ -117,23 +117,23 @@ namespace MidiVolumeMixer.Utils
         private static SettingsManager Load()
         {
             var manager = new SettingsManager();
-            
+
             if (File.Exists(SettingsFilePath))
             {
                 try
                 {
                     Logger.Log($"Loading settings from: {SettingsFilePath}");
                     string json = File.ReadAllText(SettingsFilePath);
-                    
+
                     if (string.IsNullOrWhiteSpace(json))
                     {
                         Logger.Log("Settings file exists but is empty");
                         return manager;
                     }
-                    
+
                     Logger.Log($"Settings file content: {json}");
                     var loadedData = JsonSerializer.Deserialize<SettingsData>(json);
-                    
+
                     if (loadedData != null)
                     {
                         // Replace the default data with loaded data
@@ -155,7 +155,7 @@ namespace MidiVolumeMixer.Utils
                 Logger.Log($"Settings file does not exist: {SettingsFilePath}");
                 Logger.Log("Using default settings");
             }
-            
+
             return manager;
         }
 

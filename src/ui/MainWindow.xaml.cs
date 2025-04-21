@@ -34,25 +34,25 @@ namespace MidiVolumeMixer.ui
         public MainWindow()
         {
             InitializeComponent();
-            
+
             // Initialize controllers
             _volumeController = new VolumeController();
             _midiMapper = new MidiMapper(_volumeController);
-            
+
             // Create tray icon
             _trayIcon = new TrayIcon(this);
-            
+
             // Subscribe to volume changed events
             _midiMapper.VolumeChanged += OnVolumeChanged;
-            
+
             // Initialize collections
             _audioSessions = new ObservableCollection<AudioSession>();
             _mappings = new ObservableCollection<MappingViewModel>();
-            
+
             // Set data contexts
             ApplicationsListView.ItemsSource = _audioSessions;
             MappingsListView.ItemsSource = _mappings;
-            
+
             // Register for window load and closing events
             this.Loaded += MainWindow_Loaded;
             this.Closing += MainWindow_Closing;
@@ -62,19 +62,19 @@ namespace MidiVolumeMixer.ui
         {
             // Load and apply settings
             LoadSettings();
-            
+
             // Load available MIDI devices
             LoadMidiDevices();
-            
+
             // Load running applications
             RefreshApplicationsList();
-            
+
             // Convert mappings to view models
             UpdateMappingsListFromMidiMapper();
-            
+
             // Apply theme from settings
             ApplyTheme(_settings.UseDarkMode);
-            
+
             // Apply startup state
             if (_settings.StartMinimized && _settings.MinimizeToTray)
             {
@@ -101,11 +101,11 @@ namespace MidiVolumeMixer.ui
                 _settings.StartMinimized = StartMinimizedCheckBox.IsChecked ?? false;
                 _settings.UseDarkMode = DarkModeCheckBox.IsChecked ?? false;
                 _settings.Save();
-                
+
                 // Auto-save mappings when the application is closing
                 _midiMapper.SaveMappings();
                 Console.WriteLine("Settings and mappings auto-saved on application exit");
-                
+
                 // Clean up tray icon
                 _trayIcon?.Dispose();
             }
@@ -128,20 +128,20 @@ namespace MidiVolumeMixer.ui
         {
             bool isDarkMode = DarkModeCheckBox.IsChecked ?? false;
             ApplyTheme(isDarkMode);
-            
+
             // Save the setting immediately
             _settings.UseDarkMode = isDarkMode;
             _settings.Save();
         }
-        
+
         private void ApplyTheme(bool isDarkMode)
         {
             var app = Application.Current;
-            
+
             // Get the resource dictionaries
             var darkTheme = app.Resources.MergedDictionaries[0]["DarkTheme"] as ResourceDictionary;
             var lightTheme = app.Resources.MergedDictionaries[0]["LightTheme"] as ResourceDictionary;
-            
+
             if (isDarkMode && darkTheme != null)
             {
                 // Apply dark theme
@@ -171,13 +171,13 @@ namespace MidiVolumeMixer.ui
             try
             {
                 MidiDevicesComboBox.Items.Clear();
-                
+
                 var inputDevices = InputDevice.GetAll().ToList();
                 foreach (var device in inputDevices)
                 {
                     MidiDevicesComboBox.Items.Add(device.Name);
                 }
-                
+
                 if (inputDevices.Count > 0)
                 {
                     // Use the saved device index if it's valid
@@ -211,13 +211,13 @@ namespace MidiVolumeMixer.ui
             try
             {
                 var sessions = _volumeController.GetAllAudioSessions();
-                
+
                 _audioSessions.Clear();
                 foreach (var session in sessions)
                 {
                     _audioSessions.Add(session);
                 }
-                
+
                 if (_audioSessions.Count == 0)
                 {
                     MessageBox.Show("No audio applications found", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -232,15 +232,15 @@ namespace MidiVolumeMixer.ui
         private void UpdateMappingsListFromMidiMapper()
         {
             _mappings.Clear();
-            
+
             foreach (var mapping in _midiMapper.GetAllMappings())
             {
                 var description = string.Join(", ", mapping.Settings.Select(s => $"{s.ApplicationName}: {s.VolumeLevel}%"));
-                _mappings.Add(new MappingViewModel 
-                { 
+                _mappings.Add(new MappingViewModel
+                {
                     MappingId = mapping.Id,
-                    MidiNote = mapping.MidiNote, 
-                    MappingDescription = description 
+                    MidiNote = mapping.MidiNote,
+                    MappingDescription = description
                 });
             }
         }
@@ -253,18 +253,18 @@ namespace MidiVolumeMixer.ui
                 {
                     // Store the selected device index for persistence
                     _midiMapper.SelectedMidiDeviceIndex = MidiDevicesComboBox.SelectedIndex;
-                    
+
                     // Dispose of previous listener if one exists
                     _midiListener?.Dispose();
-                    
+
                     // Create new listener
                     _midiListener = new MidiListener(_midiMapper);
-                    
+
                     // Subscribe to MIDI note events
                     _midiListener.MidiNoteReceived += OnMidiNoteReceived;
-                    
+
                     _midiListener.StartListening(MidiDevicesComboBox.SelectedIndex);
-                    
+
                     MidiStatusTextBlock.Text = $"Listening to {MidiDevicesComboBox.SelectedItem}";
                 }
                 catch (Exception ex)
@@ -282,16 +282,16 @@ namespace MidiVolumeMixer.ui
             {
                 // Update status text with pressed note
                 MidiStatusTextBlock.Text = $"Listening to {MidiDevicesComboBox.SelectedItem} - Note: {e.NoteNumber} Velocity: {e.Velocity}";
-                
+
                 // If in learning mode, notify the mapping window
                 _activeMappingWindow?.OnMidiNoteReceived(e.NoteNumber);
-                
+
                 // Support for the learn MIDI button in the main window (legacy)
                 if (_isLearningMidi)
                 {
                     _midiNoteToLearn = e.NoteNumber;
                     _isLearningMidi = false;
-                    
+
                     ShowMappingWindow(_midiNoteToLearn);
                 }
             });
@@ -316,7 +316,7 @@ namespace MidiVolumeMixer.ui
                     // Get the button's tag directly from the DataContext and Tag
                     var tag = button.Tag as string;
                     var audioSession = button.DataContext as AudioSession;
-                    
+
                     if (tag != null && audioSession != null)
                     {
                         string processName = audioSession.ProcessName;
@@ -324,7 +324,7 @@ namespace MidiVolumeMixer.ui
                         {
                             Console.WriteLine($"Setting volume for {processName} to {volumePercent}%");
                             _volumeController.SetVolumeForApplication(processName, volumePercent);
-                            
+
                             // Refresh the list to show updated volumes
                             RefreshApplicationsList();
                         }
@@ -350,7 +350,7 @@ namespace MidiVolumeMixer.ui
                     if (int.TryParse(tag.ToString(), out int volumePercent))
                     {
                         _volumeController.SetVolumeForAllApplications(volumePercent);
-                        
+
                         // Refresh the list to show updated volumes
                         RefreshApplicationsList();
                     }
@@ -395,15 +395,15 @@ namespace MidiVolumeMixer.ui
                     // Create a completely new mapping
                     _activeMappingWindow = new MappingWindow(this, _volumeController, _midiMapper);
                 }
-                
+
                 bool? result = _activeMappingWindow.ShowDialog();
-                
+
                 if (result == true)
                 {
                     // Refresh mappings list
                     UpdateMappingsListFromMidiMapper();
                 }
-                
+
                 _activeMappingWindow = null;
             }
             catch (Exception ex)
@@ -437,7 +437,7 @@ namespace MidiVolumeMixer.ui
                 var mappingViewModel = button.DataContext as MappingViewModel;
                 if (mappingViewModel != null)
                 {
-                    if (MessageBox.Show($"Are you sure you want to delete the mapping for MIDI note {mappingViewModel.MidiNote}?", 
+                    if (MessageBox.Show($"Are you sure you want to delete the mapping for MIDI note {mappingViewModel.MidiNote}?",
                                         "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
                     {
                         _midiMapper.RemoveMapping(mappingViewModel.MappingId);
@@ -452,14 +452,14 @@ namespace MidiVolumeMixer.ui
             try
             {
                 bool success = _midiMapper.SaveMappings();
-                
+
                 if (success)
                 {
                     MessageBox.Show("Mappings saved successfully.", "Save Mappings", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 else
                 {
-                    MessageBox.Show("Failed to save mappings. Please check the application logs for more details.", 
+                    MessageBox.Show("Failed to save mappings. Please check the application logs for more details.",
                                    "Save Failed", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
@@ -474,7 +474,7 @@ namespace MidiVolumeMixer.ui
             try
             {
                 bool success = _midiMapper.LoadMappings();
-                
+
                 if (success)
                 {
                     // Update the UI with the loaded mappings
@@ -483,7 +483,7 @@ namespace MidiVolumeMixer.ui
                 }
                 else
                 {
-                    MessageBox.Show("Failed to load mappings. No saved mappings were found or the file was invalid.", 
+                    MessageBox.Show("Failed to load mappings. No saved mappings were found or the file was invalid.",
                                    "Load Failed", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
@@ -502,13 +502,13 @@ namespace MidiVolumeMixer.ui
                 _settings.MinimizeToTray = MinimizeToTrayCheckBox.IsChecked ?? false;
                 _settings.StartMinimized = StartMinimizedCheckBox.IsChecked ?? false;
                 _settings.UseDarkMode = DarkModeCheckBox.IsChecked ?? false;
-                
+
                 // Configure auto-start with Windows
                 _settings.ConfigureAutoStart(_settings.StartWithWindows);
-                
+
                 // Save settings to file
                 _settings.Save();
-                
+
                 MessageBox.Show("Settings saved successfully", "Save Settings", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
