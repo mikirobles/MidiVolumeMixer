@@ -6,6 +6,15 @@
 
 A Windows application that allows you to control application volumes using a MIDI controller.
 
+## Download
+
+You can download the latest version of MIDI Volume Mixer from the [Releases](https://github.com/mikirobles/midi-volume-mixer/releases) page.
+
+Two download options are available:
+
+- **ZIP file** - Complete package with all dependencies (recommended)
+- **Standalone EXE** - May require .NET 6.0 Runtime to be installed separately
+
 ## Features
 
 - Connect to any MIDI input device
@@ -49,6 +58,18 @@ A Windows application that allows you to control application volumes using a MID
 2. Open the solution in Visual Studio 2019 or later
 3. Restore NuGet packages
 4. Build the solution
+
+## Creating Releases
+
+This project uses GitHub Actions to automatically build and publish releases:
+
+1. Update version information in the code if needed
+2. Create and push a new tag with the version number:
+   ```
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+3. GitHub Actions will automatically build the application and create a new release
 
 ## Technologies Used
 
