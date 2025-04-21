@@ -30,20 +30,18 @@ jobs:
       - name: Publish self-contained app
         run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishReadyToRun=true -p:IncludeAllContentForSelfExtract=true -p:EnableCompressionInSingleFile=true
 
-      - name: Create zip archive
+      - name: Rename executable
         run: |
           $publishPath = "bin\Release\net6.0-windows\win-x64\publish"
-          $zipFile = "MIDIVolumeMixer-${{ github.ref_name }}.zip"
-          Compress-Archive -Path "$publishPath\*" -DestinationPath $zipFile
+          $exeName = "MIDIVolumeMixer-${{ github.ref_name }}.exe"
+          Copy-Item "$publishPath\midi-volume-mixer.exe" -Destination $exeName
         shell: pwsh
 
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            MIDIVolumeMixer-${{ github.ref_name }}.zip
-            bin\Release\net6.0-windows\win-x64\publish\midi-volume-mixer.exe
+          files: MIDIVolumeMixer-${{ github.ref_name }}.exe
           name: MIDI Volume Mixer ${{ github.ref_name }}
           draft: false
           prerelease: false
@@ -52,10 +50,9 @@ jobs:
             ## MIDI Volume Mixer ${{ github.ref_name }}
 
             ### Installation
-            - **Option 1:** Download and extract the zip file for a complete installation
-            - **Option 2:** Download the standalone .exe file (may require .NET Runtime)
+            - Download the standalone executable file
+            - No additional installation required - all dependencies are included
 
             ### System Requirements
             - Windows 10 or later
-            - .NET 6.0 Runtime (included in the zip package)
             - MIDI controller device
