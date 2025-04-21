@@ -7,6 +7,10 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AssemblyName>midi-volume-mixer</AssemblyName>
     <RootNamespace>MidiVolumeMixer</RootNamespace>
+    <!-- Add these properties to fix single file publishing -->
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <SelfContained>true</SelfContained>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <ItemGroup>
