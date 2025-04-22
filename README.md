@@ -8,7 +8,7 @@ A Windows application that allows you to control application volumes using a MID
 
 ## Download
 
-You can download the latest version of MIDI Volume Mixer from the [Releases](https://github.com/YOUR-USERNAME/midi-volume-mixer/releases) page.
+You can download the latest version of MIDI Volume Mixer from the [Releases](https://github.com/mikirobles/MidiVolumeMixer/releases) page.
 
 The download is a single self-contained executable with all dependencies included - no installation required.
 
